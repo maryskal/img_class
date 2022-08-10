@@ -11,7 +11,6 @@ class TrainDataGenerator(Sequence):
         self.batch_size = batch_size
         self.pix = pix
         self.size = train_size
-
     def __len__(self):
         # numero de batches
         return math.ceil(len(self.x)*self.size / self.batch_size)
@@ -51,7 +50,7 @@ class TestDataGenerator(Sequence):
         # idx: numero de batch
         # batch 0: idx = 0 -> [0*batch_size:1*batch_size]
         # batch 1: idx = 1 -> [1*batch_size:2*batch_size]
-        idx = idx + len(self.x)*(1-self.size)/self.batch_size
+        idx = int(idx + len(self.x)*(1-self.size)/self.batch_size)
         # batch 0: idx = 0 + train_batches
         temp_x = self.x[idx * self.batch_size:(idx + 1) *
         self.batch_size]

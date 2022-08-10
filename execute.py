@@ -1,32 +1,59 @@
+import os
+import h5py as f
+import logs
+import argparse
+from tensorflow.keras.applications import EfficientNetB3
+from tensorflow.keras import layers
+from tensorflow.keras import models
+import tensorflow as tf
+
 
 if __name__ == '__main__':
-    import os
-    os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d',
+                        '--device',
+                        help="GPU device",
+                        type=str,
+                        default=2)
+    parser.add_argument('-n',
+                        '--name',
+                        type=str,
+                        default='new',
+                        help="name of the model")                               
+    parser.add_argument('-f',
+                        '--fine_tune',
+                        type=int,
+                        default=384,
+                        help="layer of effNet")
+    parser.add_argument('-b',
+                        '--batch',
+                        type=int,
+                        default=8,
+                        help="batch")
+    parser.add_argument('-lr',
+                        '--lr',
+                        type=int,
+                        default=1e-4,
+                        help="learning rate")                    
 
-    import h5py as f
-    from tensorflow.keras.applications import EfficientNetB3
-    from tensorflow.keras import layers
-    from tensorflow.keras import models
-    import tensorflow as tf
+    args = parser.parse_args()
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
+    name = args.name
+    fine_tune_at = args.fine_tune
+    batch = args.batch
+    epoch = 200
+    pix = 512
+    opt = tf.keras.optimizers.Adam(learning_rate = args.lr)
+    loss = loss = 'binary_crossentropy'
+    met = ['BinaryAccuracy', 'Precision', 'AUC']
+
     from data_generator import TrainDataGenerator as tr_gen
     from data_generator import TestDataGenerator as ts_gen
-
 
     df = f.File("/home/rs117/covid-19/data/cxr_consensus_dataset_nocompr.h5", "r")
 
     for key in df.keys():
         globals()[key] = df[key]
-
-
-    pix = 512
-    name = ''
-    epoch = 200
-    batch = 8
-    fine_tune_at = 384
-    lr = 1e-4
-    opt = tf.keras.optimizers.Adam(learning_rate = lr)
-    loss = loss = 'binary_crossentropy'
-    met = ['BinaryAccuracy', 'Precision', 'AUC']
 
 
     input_shape = (pix,pix,3)
@@ -59,15 +86,12 @@ if __name__ == '__main__':
     testgen = ts_gen(X_train, y_train, batch, pix, 0.2)
 
 
-    log_dir = "/home/mr1142/Documents/Data/logs/fit/" + name
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
-                                                        update_freq='batch',
-                                                        histogram_freq=1)
+    callb = [logs.tensorboard(name), logs.early_stop(5)]
 
     history = model.fit(traingen, 
                         validation_data = testgen,
                         batch_size = batch,
-                        #callbacks = tensorboard_callback,
+                        callbacks = callb,
                         epochs = epoch,
                         shuffle = True)
 
