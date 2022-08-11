@@ -2,6 +2,7 @@ import os
 import h5py as f
 import logs
 import argparse
+import numpy as np
 from tensorflow.keras.applications import EfficientNetB3
 from tensorflow.keras import layers
 from tensorflow.keras import models
@@ -14,7 +15,7 @@ if __name__ == '__main__':
                         '--device',
                         help="GPU device",
                         type=str,
-                        default=2)
+                        default=3)
     parser.add_argument('-n',
                         '--name',
                         type=str,
@@ -35,20 +36,25 @@ if __name__ == '__main__':
                         type=int,
                         default=1e-4,
                         help="learning rate")                    
+    parser.add_argument('-tr',
+                        '--train_split',
+                        type=int,
+                        default=0.8,
+                        help="train proportion")
 
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
     name = args.name
     fine_tune_at = args.fine_tune
     batch = args.batch
+    trainprop = args.train_split
     epoch = 200
     pix = 512
     opt = tf.keras.optimizers.Adam(learning_rate = args.lr)
     loss = loss = 'binary_crossentropy'
     met = ['BinaryAccuracy', 'Precision', 'AUC']
 
-    from data_generator import TrainDataGenerator as tr_gen
-    from data_generator import TestDataGenerator as ts_gen
+    from data_generator import DataGenerator as gen
 
     df = f.File("/home/rs117/covid-19/data/cxr_consensus_dataset_nocompr.h5", "r")
 
@@ -79,12 +85,15 @@ if __name__ == '__main__':
     for layer in conv_base.layers[:fine_tune_at]:
         layer.trainable = False
 
-
     model.compile(optimizer=opt, loss = loss , metrics = met)
 
-    traingen = tr_gen(X_train, y_train, batch, pix, 0.8)
-    testgen = ts_gen(X_train, y_train, batch, pix, 0.2)
+    ids = np.r_[0:len(df['X_train'])]
+    np.random.shuffle(ids)
+    idtrain = ids[:int(len(df['X_train'])*trainprop)]
+    idtest = ids[int(len(df['X_train'])*trainprop):]
 
+    traingen = gen(X_train, y_train, batch, pix, idtrain)
+    testgen = gen(X_train, y_train, batch, pix, idtest)
 
     callb = [logs.tensorboard(name), logs.early_stop(5)]
 

@@ -1,15 +1,14 @@
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
-
+os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+import numpy as np
 import h5py as f
 import logs
 from tensorflow.keras.applications import EfficientNetB3
 from tensorflow.keras import layers
 from tensorflow.keras import models
 import tensorflow as tf
-from data_generator import TrainDataGenerator as tr_gen
-from data_generator import TestDataGenerator as ts_gen
+from data_generator import DataGenerator as gen
 
 
 df = f.File("/home/rs117/covid-19/data/cxr_consensus_dataset_nocompr.h5", "r")
@@ -19,7 +18,7 @@ for key in df.keys():
 
 
 pix = 512
-name = 'initial_8_384_4'
+name = 'poca'
 epoch = 200
 batch = 8
 fine_tune_at = 384
@@ -55,8 +54,15 @@ for layer in conv_base.layers[:fine_tune_at]:
 
 model.compile(optimizer=opt, loss = loss , metrics = met)
 
-traingen = tr_gen(X_train, y_train, batch, pix, 0.8)
-testgen = ts_gen(X_train, y_train, batch, pix, 0.2)
+
+ids = np.r_[0:len(df['X_train'])]
+np.random.shuffle(ids)
+trainprop = 0.8
+idtrain = ids[:int(len(df['X_train'])*trainprop)]
+idtest = ids[int(len(df['X_train'])*trainprop):]
+
+traingen = gen(X_train, y_train, batch, pix, idtrain)
+testgen = gen(X_train, y_train, batch, pix, idtest)
 
 
 callb = [logs.tensorboard(name), logs.early_stop(5)]
@@ -64,8 +70,13 @@ callb = [logs.tensorboard(name), logs.early_stop(5)]
 history = model.fit(traingen, 
                     validation_data = testgen,
                     batch_size = batch,
-                    callbacks = callb,
+                    #callbacks = callb,
                     epochs = epoch,
                     shuffle = True)
 
 model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
+
+for i, set in enumerate(testgen):
+    print(i)
+    print(set[0].shape)
+

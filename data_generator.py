@@ -26,12 +26,7 @@ class TrainDataGenerator(Sequence):
 
         batch_x = np.zeros((self.batch_size, self.pix, self.pix, 1))
         for i in range(self.batch_size):
-            long = len(temp_x[i][temp_x[i]>0.1][temp_x[i][temp_x[i]>0.1]<0.9])/len(temp_x[i].flatten())
-            if long < 0.5:
-                img = np.random.randint(0,255,self.pix*self.pix).reshape((self.pix, self.pix, 1))
-                batch_x[i] = msk.normalize(img)
-            else:
-                batch_x[i] = fu.get_prepared_img(temp_x[i], self.pix)
+            batch_x[i] = fu.get_prepared_img(temp_x[i], self.pix)
         return np.array(batch_x), np.array(batch_y)
 
 class TestDataGenerator(Sequence):
@@ -50,7 +45,7 @@ class TestDataGenerator(Sequence):
         # idx: numero de batch
         # batch 0: idx = 0 -> [0*batch_size:1*batch_size]
         # batch 1: idx = 1 -> [1*batch_size:2*batch_size]
-        idx = int(idx + len(self.x)*(1-self.size)/self.batch_size)
+        idx = int(idx + len(self.x)*(1-self.size)/self.batch_size)-1
         # batch 0: idx = 0 + train_batches
         temp_x = self.x[idx * self.batch_size:(idx + 1) *
         self.batch_size]
@@ -59,8 +54,37 @@ class TestDataGenerator(Sequence):
 
         batch_x = np.zeros((self.batch_size, self.pix, self.pix, 1))
         for i in range(self.batch_size):
+            batch_x[i] = fu.get_prepared_img(temp_x[i], self.pix)
+        return np.array(batch_x), np.array(batch_y)
+
+
+class DataGenerator(Sequence):
+
+    def __init__(self, x_set, y_set, batch_size, pix, index):
+        self.x, self.y = x_set, y_set
+        self.batch_size = batch_size
+        self.pix = pix
+        index.sort()
+        self.index = index
+
+    def __len__(self):
+        # numero de batches
+        return math.ceil(len(self.index) / self.batch_size)
+
+    def __getitem__(self, idx):
+        # idx: numero de batch
+        # batch 0: idx = 0 -> [0*batch_size:1*batch_size]
+        # batch 1: idx = 1 -> [1*batch_size:2*batch_size]
+        # Lo que hago es recorrer el indice
+        index = self.index[idx * self.batch_size:(idx + 1) * self.batch_size]
+        temp_x = self.x[index]
+        batch_y = self.y[index]
+        batch_x = np.zeros((temp_x.shape[0], self.pix, self.pix, 1))
+        for i in range(temp_x.shape[0]):
+            # Compruebo el numero de valores entre 0.1 y 0.9 (si es menos del 50% creo una imagen de ruido)
             long = len(temp_x[i][temp_x[i]>0.1][temp_x[i][temp_x[i]>0.1]<0.9])/len(temp_x[i].flatten())
             if long < 0.5:
+                print('ruido')
                 img = np.random.randint(0,255,self.pix*self.pix).reshape((self.pix, self.pix, 1))
                 batch_x[i] = msk.normalize(img)
             else:
