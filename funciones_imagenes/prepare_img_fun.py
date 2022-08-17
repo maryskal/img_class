@@ -21,8 +21,9 @@ def clahe(img):
     return final_img
 
 
-def get_prepared_img(img, pix):
-    segmented = msk.des_normalize(msk.apply_mask(img, model))
-    segmented = msk.recolor_resize(segmented, pix)
-    segmented = msk.normalize(segmented)
-    return segmented
+def get_prepared_img(img, pix, mask = True):
+    if mask:
+        img = msk.des_normalize(msk.apply_mask(img, model))
+    img = msk.recolor_resize(img, pix)
+    img = msk.normalize(img)
+    return img
