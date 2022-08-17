@@ -3,7 +3,7 @@ import h5py as f
 import numpy as np
 import pickle
 
-os.environ['CUDA_VISIBLE_DEVICES'] = str(3)
+os.environ['CUDA_VISIBLE_DEVICES'] = str(2)
 name = ''
 subset = True
 modelo = 'EffNet3'
@@ -22,7 +22,7 @@ for key in df.keys():
     globals()[key] = df[key]
 
 # DATA GENERATORS
-from data_generator import DataGenerator as gen
+from img_class.funciones_imagenes.data_generator import DataGenerator as gen
 
 if subset:
     with open("/home/mr1142/Documents/img_class/index_subset", "rb") as fp:
@@ -84,8 +84,7 @@ model.compile(optimizer=opt, loss = loss , metrics = met)
 history = model.fit(traingen, 
                     validation_data = testgen,
                     batch_size = batch,
-                    callbacks = callb,
-                    epochs = epoch,
+                    epochs = 2,
                     shuffle = True)
 
 model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
@@ -112,3 +111,11 @@ for i, set in enumerate(traingen):
     a = set[0]
     print(np.min(a))
     print(np.max(a))
+
+import pandas as pd
+datos = history.history
+datos = pd.DataFrame(datos)
+path = '/home/mr1142/Documents/Data/models/neumonia/training_data'
+if not os.path.exists(os.path.join(path, name)):
+    os.makedirs(os.path.join(path, name))
+datos.to_csv(os.path.join(path, name, name + '_data.csv'))

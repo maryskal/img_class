@@ -1,6 +1,7 @@
 import os
 import h5py as f
-import logs
+import funciones_complementarias.logs as logs
+import funciones_complementarias.evaluation as ev
 import argparse
 import numpy as np
 import pickle
@@ -76,13 +77,13 @@ if __name__ == '__main__':
         globals()[key] = df[key]
 
     # DATA GENERATORS
-    from data_generator import DataGenerator as gen
+    from funciones_imagenes.data_generator import DataGenerator as gen
 
     if subset:
-        with open("/home/mr1142/Documents/img_class/index_subset", "rb") as fp:
+        with open("/home/mr1142/Documents/img_class/indices/index_subset", "rb") as fp:
             index = pickle.load(fp)
     else:
-        with open("/home/mr1142/Documents/img_class/index", "rb") as fp:
+        with open("/home/mr1142/Documents/img_class/indices/index", "rb") as fp:
             index = pickle.load(fp)
 
     np.random.shuffle(index)
@@ -138,6 +139,8 @@ if __name__ == '__main__':
                         callbacks = callb,
                         epochs = epoch,
                         shuffle = True)
+    
+    name = ev.save_training(history, name)
 
     model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
 
