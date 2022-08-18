@@ -140,7 +140,16 @@ if __name__ == '__main__':
                         epochs = epoch,
                         shuffle = True)
     
-    name = ev.save_training(history, name)
+    # Guardar el train
+    otros_datos = [fine_tune, batch, lr, mask, trainprop, pix, subset]
+    name = ev.save_training(history, name, [modelo, fine_tune, batch, lr, mask, trainprop, pix, subset])
 
+    # Guardar modelo
     model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
+
+    # VALIDACION
+    with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
+        val_index = pickle.load(fp)
+    results = ev.evaluate(model, X_train, y_train, val_index, mask = mask)
+    ev.save_eval(name, results)
 
