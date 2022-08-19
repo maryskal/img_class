@@ -7,11 +7,60 @@ import numpy as np
 import pickle
 from tensorflow.keras.applications import InceptionResNetV2
 from tensorflow.keras.applications import EfficientNetB3
-from tensorflow.keras.applications import EfficientNetB7
-from tensorflow.keras.applications import NASNetLarge
+from tensorflow.keras.applications import EfficientNetB5
+from tensorflow.keras.applications import Xception
 from tensorflow.keras import layers
 from tensorflow.keras import models
 import tensorflow as tf
+
+
+def crear_modelo(input_shape, backbone_name, frozen_backbone_prop):
+    if backbone_name == 'IncResNet':
+        backbone = InceptionResNetV2(weights="imagenet", include_top=False, input_shape=input_shape)
+    elif backbone_name == 'EffNet3':
+        backbone = EfficientNetB3(weights="imagenet", include_top=False, input_shape=input_shape)
+    elif backbone_name == 'EffNet5':
+        backbone = EfficientNetB5(weights="imagenet", include_top=False, input_shape=input_shape)
+    elif backbone_name == 'Xception':
+        backbone = Xception(weights="imagenet", include_top=False, input_shape=input_shape)
+
+    model = models.Sequential()
+    model.add(layers.Conv2D(3,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_inicial'))
+    model.add(backbone)
+    model.add(layers.GlobalMaxPooling2D(name="general_max_pooling"))
+    model.add(layers.Dropout(0.2, name="dropout_out_1"))
+    model.add(layers.Dense(768, activation="elu"))
+    model.add(layers.Dense(128, activation="elu"))
+    model.add(layers.Dropout(0.2, name="dropout_out_2"))
+    model.add(layers.Dense(32, activation="elu"))
+    model.add(layers.Dense(3, activation="softmax", name="fc_out"))
+
+    # Se coge una proporción del modelo que dejar fija
+    fine_tune_at = int(len(backbone.layers)*frozen_backbone_prop)
+    backbone.trainable = True
+    for layer in backbone.layers[:fine_tune_at]:
+        layer.trainable = False
+    return model
+
+
+def data_generators_generation(X_train, y_train, subset = False, trainprop = 0.8):
+    from funciones_imagenes.data_generator import DataGenerator as gen
+
+    if subset:
+        with open("/home/mr1142/Documents/img_class/indices/index_subset", "rb") as fp:
+            index = pickle.load(fp)
+    else:
+        with open("/home/mr1142/Documents/img_class/indices/index", "rb") as fp:
+            index = pickle.load(fp)
+
+    np.random.shuffle(index)
+    idtrain = index[:int(len(index)*trainprop)]
+    idtest = index[int(len(index)*trainprop):]
+
+    traingen = gen(X_train, y_train, batch, pix, idtrain, mask)
+    testgen = gen(X_train, y_train, batch, pix, idtest, mask)
+
+    return traingen, testgen
 
 
 if __name__ == '__main__':
@@ -32,15 +81,15 @@ if __name__ == '__main__':
                         default=True,
                         help="train with a subset of 1000")
     parser.add_argument('-mo',
-                        '--model',
+                        '--modelo',
                         type=str,
                         default='EffNet3',
                         help="train with a subset of 1000")                      
     parser.add_argument('-f',
-                        '--fine_tune',
+                        '--frozen_prop',
                         type=float,
-                        default=0.8,
-                        help="proportion of layers to tune from backbone")
+                        default=0.7,
+                        help="proportion of layers to frozen from backbone")
     parser.add_argument('-b',
                         '--batch',
                         type=int,
@@ -62,8 +111,8 @@ if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
     name = args.name
     subset = args.subset
-    modelo = args.model
-    fine_tune = args.fine_tune
+    backbone = args.modelo
+    frozen_prop = args.frozen_prop
     batch = args.batch
     lr = args.lr
     mask = args.mask
@@ -73,64 +122,23 @@ if __name__ == '__main__':
 
     # DATAFRAME
     df = f.File("/home/rs117/covid-19/data/cxr_consensus_dataset_nocompr.h5", "r")
-
     for key in df.keys():
         globals()[key] = df[key]
 
     # DATA GENERATORS
-    from funciones_imagenes.data_generator import DataGenerator as gen
-
-    if subset:
-        with open("/home/mr1142/Documents/img_class/indices/index_subset", "rb") as fp:
-            index = pickle.load(fp)
-    else:
-        with open("/home/mr1142/Documents/img_class/indices/index", "rb") as fp:
-            index = pickle.load(fp)
-
-    np.random.shuffle(index)
-    idtrain = index[:int(len(index)*trainprop)]
-    idtest = index[int(len(index)*trainprop):]
-
-    traingen = gen(X_train, y_train, batch, pix, idtrain, mask)
-    testgen = gen(X_train, y_train, batch, pix, idtest, mask)
+    traingen, testgen = data_generators_generation(X_train, y_train, subset, trainprop)
 
     # MODELO
-    # Se elige que modelo usar
     input_shape = (pix,pix,3)
-    if modelo == 'IncResNet':
-        conv_base = InceptionResNetV2(weights="imagenet", include_top=False, input_shape=input_shape)
-    elif modelo == 'EffNet3':
-        conv_base = EfficientNetB3(weights="imagenet", include_top=False, input_shape=input_shape)
-    elif modelo == 'EffNet7':
-        conv_base = EfficientNetB7(weights="imagenet", include_top=False, input_shape=input_shape)
-    elif modelo == 'NasNet':
-        conv_base = NASNetLarge(weights="imagenet", include_top=False, input_shape=input_shape)
-
-    model = models.Sequential()
-    model.add(layers.Conv2D(3,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_inicial'))
-    model.add(conv_base)
-    model.add(layers.GlobalMaxPooling2D(name="general_max_pooling"))
-    model.add(layers.Dropout(0.2, name="dropout_out_1"))
-    model.add(layers.Dense(768, activation="elu"))
-    model.add(layers.Dense(128, activation="elu"))
-    model.add(layers.Dropout(0.2, name="dropout_out_2"))
-    model.add(layers.Dense(32, activation="elu"))
-    model.add(layers.Dense(3, activation="softmax", name="fc_out"))
-
-    # Fine tunning
-    # Se coge una proporción del modelo que dejar fija
-    fine_tune_at = int(len(conv_base.layers)*fine_tune)
-    conv_base.trainable = True
-    for layer in conv_base.layers[:fine_tune_at]:
-        layer.trainable = False
+    model = crear_modelo(input_shape, backbone, frozen_prop)    
 
     # Compilado
-    name = name + '_' + modelo + '_' + 'fine-0' + str(fine_tune)[2:] + '_batch-' + str(batch) + '_lr-' + str(lr)[2:]
-    opt = tf.keras.optimizers.Adam(learning_rate = lr)
-    loss = loss = 'categorical_crossentropy'
-    met = ['BinaryAccuracy', 'Precision', 'AUC']
-    
-    model.compile(optimizer=opt, loss = loss , metrics = met)
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = lr), 
+                    loss = 'categorical_crossentropy',
+                    metrics = ['BinaryAccuracy', 'Precision', 'AUC'])
+
+    # NAME 
+    name = name + '_' + backbone + '_' + 'fine-0' + str(frozen_prop)[2:] + '_batch-' + str(batch) + '_lr-' + str(lr)[2:]
 
     # CALLBACK
     callb = [logs.tensorboard(name), logs.early_stop(10)]
@@ -144,15 +152,14 @@ if __name__ == '__main__':
                         shuffle = True)
     
     # Guardar el train
-    otros_datos = [fine_tune, batch, lr, mask, trainprop, pix, subset]
-    name = ev.save_training(history, name, [modelo, fine_tune, batch, lr, mask, trainprop, pix, subset])
+    name = ev.save_training(history, name, [backbone, frozen_prop, batch, lr, mask, trainprop, pix, subset])
 
     # Guardar modelo
     model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
 
     # VALIDACION
-    with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
-        val_index = pickle.load(fp)
-    results = ev.evaluate(model, X_train, y_train, val_index, mask = mask)
-    ev.save_eval(name, results)
+    if subset:
+        with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
+            val_index = pickle.load(fp)
+        ev.save_eval(name, ev.evaluate(model, X_train, y_train, val_index, mask = mask))
 
