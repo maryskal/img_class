@@ -8,6 +8,7 @@ import pickle
 from tensorflow.keras.applications import InceptionResNetV2
 from tensorflow.keras.applications import EfficientNetB3
 from tensorflow.keras.applications import EfficientNetB7
+from tensorflow.keras.applications import NASNetLarge
 from tensorflow.keras import layers
 from tensorflow.keras import models
 import tensorflow as tf
@@ -102,6 +103,8 @@ if __name__ == '__main__':
         conv_base = EfficientNetB3(weights="imagenet", include_top=False, input_shape=input_shape)
     elif modelo == 'EffNet7':
         conv_base = EfficientNetB7(weights="imagenet", include_top=False, input_shape=input_shape)
+    elif modelo == 'NasNet':
+        conv_base = NASNetLarge(weights="imagenet", include_top=False, input_shape=input_shape)
 
     model = models.Sequential()
     model.add(layers.Conv2D(3,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_inicial'))

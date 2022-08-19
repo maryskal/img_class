@@ -2,7 +2,7 @@ import os
 import pickle
 import h5py as f
 from tensorflow import keras
-import img_class.funciones_complementarias.predicciones as pred
+import funciones_complementarias.predicciones as pred
 
 def predicciones_modelo(model_name, subset = True):
     model = os.path.join('/home/mr1142/Documents/Data/models/neumonia', model_name)
