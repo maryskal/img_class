@@ -43,10 +43,10 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop):
     return model
 
 
-def data_generators_generation(X_train, y_train, subset = False, trainprop = 0.8):
+def data_generators_generation(X_train, y_train, subset_bool = False, trainprop = 0.8):
     from funciones_imagenes.data_generator import DataGenerator as gen
 
-    if subset:
+    if subset_bool:
         with open("/home/mr1142/Documents/img_class/indices/index_subset", "rb") as fp:
             index = pickle.load(fp)
     else:
@@ -76,15 +76,15 @@ if __name__ == '__main__':
                         default='new',
                         help="name of the model")
     parser.add_argument('-s',
-                        '--subset',
+                        '--subset_bool',
                         type=bool,
-                        default=True,
-                        help="train with a subset of 1000")
+                        default=False,
+                        help="use a subset of 1000")
     parser.add_argument('-mo',
                         '--modelo',
                         type=str,
                         default='EffNet3',
-                        help="train with a subset of 1000")                      
+                        help="which model")                      
     parser.add_argument('-f',
                         '--frozen_prop',
                         type=float,
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
     name = args.name
-    subset = args.subset
+    subset_bool = args.subset_bool
     backbone = args.modelo
     frozen_prop = args.frozen_prop
     batch = args.batch
@@ -126,7 +126,7 @@ if __name__ == '__main__':
         globals()[key] = df[key]
 
     # DATA GENERATORS
-    traingen, testgen = data_generators_generation(X_train, y_train, subset, trainprop)
+    traingen, testgen = data_generators_generation(X_train, y_train, subset_bool, trainprop)
 
     # MODELO
     input_shape = (pix,pix,3)
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
 
     # VALIDACION
-    if subset:
+    if subset_bool:
         with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
             val_index = pickle.load(fp)
         ev.save_eval(name, ev.evaluate(model, X_train, y_train, val_index, mask = mask))
