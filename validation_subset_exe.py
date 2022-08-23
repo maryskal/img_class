@@ -6,7 +6,7 @@ import argparse
 from tensorflow import keras
 
 
-def predicciones_modelo(model_name, subset = True):
+def predicciones_modelo(model_name):
     if bool(re.search('mask', model_name)):
         mask = True
     else:
@@ -20,6 +20,10 @@ def predicciones_modelo(model_name, subset = True):
     with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
         index = pickle.load(fp)
     index.sort()
+    results = ev.evaluate(model, X_train, y_train, index, mask)
+    print('results calculados')
+    ev.save_eval(model_name[:-3], results)
+    print('results guardados en tabla csv')
     pred.save_metricas(model_name[:-3], model, X_train, y_train, index, mask)
 
 
@@ -33,12 +37,13 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
+    import funciones_complementarias.evaluation as ev
     import funciones_complementarias.predicciones as pred
 
-    modelos = ['prueba_EffNet3_fine-03_batch-8_lr-001_auc-94.h5',
-        'prueba_IncResNet_fine-03_batch-8_lr-0001_auc-94.h5',
-        'prueba_mask_IncResNet_fine-05_batch-8_lr-0001_auc-95.h5',
-        'prueba_mask_IncResNet_fine-03_batch-8_lr-0001_auc-91.h5']
+    path = '/home/mr1142/Documents/Data/models/neumonia'
+    onlyfiles = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    modelos = [file for file in onlyfiles if not bool(re.search('completo', file))]
+ 
     for model_name in modelos:
         print(f'\nmodel: {model_name}')
         predicciones_modelo(model_name)

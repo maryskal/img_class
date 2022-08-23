@@ -1,6 +1,5 @@
 import os
 import re
-import pickle
 import h5py as f
 import argparse
 from tensorflow import keras
@@ -18,7 +17,7 @@ def predicciones_modelo(model_name):
     for key in dataframes.keys():
         globals()[key] = dataframes[key]
     
-    results = ev.evaluate(model, X_val, y_val, list(range(len(y_val))), mask)
+    results = ev.evaluate(model, X_val, y_val, list(range(len(y_val))), mask=mask)
     ev.save_eval(model_name[:-3], results)
     pred.save_metricas(model_name[:-3], model, X_val, y_val, list(range(len(y_val))), mask)
 

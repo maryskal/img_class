@@ -43,9 +43,7 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop):
     return model
 
 
-def data_generators_generation(X_train, y_train, subset_bool = False, trainprop = 0.8):
-    from funciones_imagenes.data_generator import DataGenerator as gen
-
+def generate_index(subset_bool = False, trainprop = 0.8):
     if subset_bool:
         with open("/home/mr1142/Documents/img_class/indices/index_subset", "rb") as fp:
             index = pickle.load(fp)
@@ -57,10 +55,7 @@ def data_generators_generation(X_train, y_train, subset_bool = False, trainprop 
     idtrain = index[:int(len(index)*trainprop)]
     idtest = index[int(len(index)*trainprop):]
 
-    traingen = gen(X_train, y_train, batch, pix, idtrain, mask)
-    testgen = gen(X_train, y_train, batch, pix, idtest, mask)
-
-    return traingen, testgen
+    return idtrain, idtest
 
 
 if __name__ == '__main__':
@@ -116,7 +111,7 @@ if __name__ == '__main__':
     batch = args.batch
     lr = args.lr
     mask = args.mask
-    trainprop = 0.8
+    trainprop = 0.7
     epoch = 200
     pix = 512
 
@@ -126,7 +121,11 @@ if __name__ == '__main__':
         globals()[key] = df[key]
 
     # DATA GENERATORS
-    traingen, testgen = data_generators_generation(X_train, y_train, subset_bool, trainprop)
+    idtrain, idtest = generate_index(subset_bool, trainprop)
+
+    from funciones_imagenes.data_generator import DataGenerator as gen
+    traingen = gen(X_train, y_train, batch, pix, idtrain, mask)
+    testgen = gen(X_train, y_train, batch, pix, idtest, mask)
 
     # MODELO
     input_shape = (pix,pix,3)
@@ -141,7 +140,7 @@ if __name__ == '__main__':
     name = name + '_' + backbone + '_' + 'fine-0' + str(frozen_prop)[2:] + '_batch-' + str(batch) + '_lr-' + str(lr)[2:]
 
     # CALLBACK
-    callb = [logs.tensorboard(name), logs.early_stop(10)]
+    callb = [logs.tensorboard(name), logs.early_stop(5)]
 
     # TRAIN
     history = model.fit(traingen, 
@@ -152,14 +151,21 @@ if __name__ == '__main__':
                         shuffle = True)
     
     # Guardar el train
-    name = ev.save_training(history, name, [backbone, frozen_prop, batch, lr, mask, trainprop, pix, subset])
+    name = ev.save_training(history, name, 
+            [backbone, frozen_prop, batch, lr, mask, trainprop, pix, subset_bool])
 
     # Guardar modelo
     model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
 
     # VALIDACION
+    results = ev.evaluate(model, X_train, y_train, idtest, mask=mask)
+    ev.save_eval(name, results)
+    import funciones_complementarias.predicciones as pred
+    pred.save_metricas(name, model, X_train, y_train, idtest, mask=mask)
+
+    # TEST
     if subset_bool:
         with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
             val_index = pickle.load(fp)
-        ev.save_eval(name, ev.evaluate(model, X_train, y_train, val_index, mask = mask))
+        ev.save_eval(name + '_test', ev.evaluate(model, X_train, y_train, val_index, mask = mask))
 

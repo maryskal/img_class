@@ -19,6 +19,7 @@ def save_train_in_table(datos, name, otros_datos):
     for v in datos.values():
         values.append(max(v))
     df.loc[len(df)] = values
+    df.reset_index(drop = True)
     df.to_csv(path, index = False)
 
 
@@ -34,5 +35,11 @@ def save_eval(name, results):
     path = '/home/mr1142/Documents/Data/models/neumonia/validation_results/image_class_evaluation.csv'
     df = pd.read_csv(path)
     save = [name] + results
-    df.loc[len(df.index)] = save
+    try:
+        # Si ya existe el modelo, se sobreescriben las métricas
+        i = df[df['nombre'] == name].index
+        df.loc[i[0]] = save
+    except:
+        df.loc[len(df.index)] = save
+    df.reset_index(drop=True)
     df.to_csv(path, index = False)
