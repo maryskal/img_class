@@ -6,7 +6,10 @@ import funciones_imagenes.prepare_img_fun as fu
 import funciones_complementarias.metrics_and_plots as met
 
 def img_predict(model, img, mask = False, pix = 512):
-    img = fu.get_prepared_img(img, pix, mask)
+    try:
+        img = fu.get_prepared_img(img, pix, mask)
+    except:
+        img = np.random.randint(0,255,512*512).reshape((512,512, 1))
     return model.predict(img[np.newaxis,:])
 
 
@@ -17,17 +20,22 @@ def prediction_tensor(model, X, index, mask = False, pix = 512):
     return y_pred
 
 
-def save_json(path, name, data):
-    with open(os.path.join(path, name +'.json', 'w')) as j:
+def save_json(path, data):
+    with open(os.path.join(path, 'metricas.json'), 'w') as j:
         json.dump(data, j)
 
 
-def save_in_csv(path, name, metrics):
+def save_in_csv(path, name, metricas):
     df = pd.read_csv(os.path.join(path, 'prediction_validation_metrics.csv'))
-    d = pd.DataFrame(metrics)
-    d.insert(0, 'name', name)
-    df = pd.concat([df, d], ignore_index=True)
-    df.to_csv(path, index = False)
+    save = [name] + list(metricas.values())
+    try:
+        # Si ya existe el modelo, se sobreescriben las métricas
+        i = df[df['name'] == name].index
+        df.loc[i[0]] = save
+    except:
+        df.loc[len(df.index)] = save
+    df.reset_index(drop=True)
+    df.to_csv(os.path.join(path, 'prediction_validation_metrics.csv'), index = False)
 
 
 def save_metricas(name, model, X, y, index, mask = False):
@@ -41,12 +49,12 @@ def save_metricas(name, model, X, y, index, mask = False):
     if not os.path.exists(path):
         os.makedirs(path)
         print("The new directory is created!")
-    save_json(path, name, metricas)
+    save_json(path, metricas)
     print('json guardado')
     save_in_csv(p, name, metricas)
     print('guardado en tabla csv')
     for k, v in plots.items():
         met.save_plot(v, path, k)
     print('plots guardados')
-    met.class_report(name, y_real, y_pred)
+    met.class_report(y_real, y_pred, path)
 

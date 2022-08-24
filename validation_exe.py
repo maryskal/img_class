@@ -13,7 +13,7 @@ def predicciones_modelo(model_name):
     model = os.path.join('/home/mr1142/Documents/Data/models/neumonia', model_name)
     model = keras.models.load_model(model)
 
-    dataframes = f.File("/home/rs117/covid-19/data/cxr_consensus_dataset_nocompr.h5", "r")
+    dataframes = f.File("/datagpu/datasets/mr1142/cxr_consensus_dataset_nocompr.h5", "r")
     for key in dataframes.keys():
         globals()[key] = dataframes[key]
     
@@ -38,6 +38,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
     model_name = args.model_name
-    import funciones_complementarias.predicciones as pred
+    import funciones_complementarias.prediction as pred
     import funciones_complementarias.evaluation as ev
     predicciones_modelo(model_name)

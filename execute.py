@@ -111,12 +111,12 @@ if __name__ == '__main__':
     batch = args.batch
     lr = args.lr
     mask = args.mask
-    trainprop = 0.7
+    trainprop = 0.8
     epoch = 200
     pix = 512
 
     # DATAFRAME
-    df = f.File("/home/rs117/covid-19/data/cxr_consensus_dataset_nocompr.h5", "r")
+    df = f.File("/datagpu/datasets/mr1142/cxr_consensus_dataset_nocompr.h5", "r")
     for key in df.keys():
         globals()[key] = df[key]
 
@@ -153,19 +153,29 @@ if __name__ == '__main__':
     # Guardar el train
     name = ev.save_training(history, name, 
             [backbone, frozen_prop, batch, lr, mask, trainprop, pix, subset_bool])
+    print('TRAINING GUARDADO')
 
     # Guardar modelo
     model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
+    print('MODELO GUARDADO')
 
-    # VALIDACION
-    results = ev.evaluate(model, X_train, y_train, idtest, mask=mask)
-    ev.save_eval(name, results)
-    import funciones_complementarias.predicciones as pred
-    pred.save_metricas(name, model, X_train, y_train, idtest, mask=mask)
+    # TEST (subset) - VALIDACION (completo)
+    import funciones_complementarias.prediction as pred
 
-    # TEST
     if subset_bool:
         with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
             val_index = pickle.load(fp)
-        ev.save_eval(name + '_test', ev.evaluate(model, X_train, y_train, val_index, mask = mask))
+        
+        val_index.sort()
+        ev.save_eval(name, ev.evaluate(model, X_train, y_train, val_index, mask = mask))
+        print('EVALUATE GUARDADO')
+        pred.save_metricas(name, model, X_train, y_train, val_index, mask=mask)
+        print('METRICAS GUARDADO')
+    else:
+        idtest.sort()
+        results = ev.evaluate(model, X_train, y_train, idtest, mask=mask)
+        ev.save_eval(name + '_val', results)
+        print('EVALUATE GUARDADO')
+        pred.save_metricas(name, model, X_train, y_train, idtest, mask=mask)
+        print('METRICAS GUARDADO')
 

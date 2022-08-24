@@ -5,7 +5,7 @@ import funciones_imagenes.prepare_img_fun as fu
 import funciones_imagenes.mask_funct as msk
 
 class DataGenerator(Sequence):
-
+    
     def __init__(self, x_set, y_set, batch_size, pix, index, mask):
         self.x, self.y = x_set, y_set
         self.batch_size = batch_size

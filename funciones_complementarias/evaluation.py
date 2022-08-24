@@ -1,5 +1,4 @@
 import pandas as pd
-import h5py as f
 import os
 
 def save_training(history, name, otros_datos):
