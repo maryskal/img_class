@@ -25,8 +25,8 @@ def save_json(path, data):
         json.dump(data, j)
 
 
-def save_in_csv(path, name, metricas):
-    df = pd.read_csv(os.path.join(path, 'prediction_validation_metrics.csv'))
+def save_in_csv(path, name, metricas, subname):
+    df = pd.read_csv(os.path.join(path, 'prediction_validation_metrics' + subname + '.csv'))
     save = [name] + list(metricas.values())
     try:
         # Si ya existe el modelo, se sobreescriben las métricas
@@ -38,7 +38,7 @@ def save_in_csv(path, name, metricas):
     df.to_csv(os.path.join(path, 'prediction_validation_metrics.csv'), index = False)
 
 
-def save_metricas(name, model, X, y, index, mask = False):
+def save_metricas(name, model, X, y, index, mask = False, subname = ''):
     y_pred = prediction_tensor(model, X, index, mask)
     y_real = y[index]
     print('prediccion realizada')
@@ -49,9 +49,12 @@ def save_metricas(name, model, X, y, index, mask = False):
     if not os.path.exists(path):
         os.makedirs(path)
         print("The new directory is created!")
-    save_json(path, metricas)
-    print('json guardado')
-    save_in_csv(p, name, metricas)
+    try:
+        save_json(path, metricas)
+        print('json guardado')
+    except:
+        print('json no saved')
+    save_in_csv(p, name, metricas, subname)
     print('guardado en tabla csv')
     for k, v in plots.items():
         met.save_plot(v, path, k)

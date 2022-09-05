@@ -1,17 +1,17 @@
 import pandas as pd
 import os
 
-def save_training(history, name, otros_datos):
+def save_training(history, name, otros_datos, subname = ''):
     datos = history.history
     name = name + '_auc-' + str(max(datos['val_auc']))[2:4]
-    save_train_in_table(datos, name, otros_datos)
+    path = '/home/mr1142/Documents/Data/models/neumonia/training_data/train_max' + subname + '.csv'
+    save_train_in_table(datos, name, otros_datos, path)
     path = '/home/mr1142/Documents/Data/models/neumonia/training_data'   
     pd.DataFrame(datos).to_csv(os.path.join(path, name + '_data.csv'), index = False)
     return name
 
 
-def save_train_in_table(datos, name, otros_datos):
-    path = '/home/mr1142/Documents/Data/models/neumonia/training_data/train_max.csv'
+def save_train_in_table(datos, name, otros_datos, path):
     df = pd.read_csv(path)
     values = [name]
     values.extend(otros_datos)
@@ -30,8 +30,8 @@ def evaluate(model, X_val, y_val, index, batch = 8, pix = 512, mask = False):
     return results
 
 
-def save_eval(name, results):
-    path = '/home/mr1142/Documents/Data/models/neumonia/validation_results/image_class_evaluation.csv'
+def save_eval(name, results, subname = ''):
+    path = '/home/mr1142/Documents/Data/models/neumonia/validation_results/image_class_evaluation' + subname + '.csv'
     df = pd.read_csv(path)
     save = [name] + results
     try:

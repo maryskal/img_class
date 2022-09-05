@@ -7,7 +7,6 @@ import numpy as np
 import pickle
 from tensorflow.keras.applications import InceptionResNetV2
 from tensorflow.keras.applications import EfficientNetB3
-from tensorflow.keras.applications import EfficientNetB5
 from tensorflow.keras.applications import Xception
 from tensorflow.keras import layers
 from tensorflow.keras import models
@@ -19,8 +18,6 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop):
         backbone = InceptionResNetV2(weights="imagenet", include_top=False, input_shape=input_shape)
     elif backbone_name == 'EffNet3':
         backbone = EfficientNetB3(weights="imagenet", include_top=False, input_shape=input_shape)
-    elif backbone_name == 'EffNet5':
-        backbone = EfficientNetB5(weights="imagenet", include_top=False, input_shape=input_shape)
     elif backbone_name == 'Xception':
         backbone = Xception(weights="imagenet", include_top=False, input_shape=input_shape)
 
@@ -78,7 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('-mo',
                         '--modelo',
                         type=str,
-                        default='EffNet3',
+                        default='Xception',
                         help="which model")                      
     parser.add_argument('-f',
                         '--frozen_prop',
@@ -150,19 +147,21 @@ if __name__ == '__main__':
                         epochs = epoch,
                         shuffle = True)
     
-    # Guardar el train
-    name = ev.save_training(history, name, 
-            [backbone, frozen_prop, batch, lr, mask, trainprop, pix, subset_bool])
-    print('TRAINING GUARDADO')
 
-    # Guardar modelo
-    model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
-    print('MODELO GUARDADO')
-
-    # TEST (subset) - VALIDACION (completo)
+    # GUARDAR MÉTRICAS
     import funciones_complementarias.prediction as pred
 
     if subset_bool:
+        # Guardar el train
+        name = ev.save_training(history, name, 
+                [backbone, frozen_prop, batch, lr, mask, trainprop, pix, subset_bool])
+        print('TRAINING GUARDADO')
+
+        # Guardar modelo
+        model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
+        print('MODELO GUARDADO')
+
+        # TEST (subset) - VALIDACION (completo)
         with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
             val_index = pickle.load(fp)
         
@@ -172,10 +171,21 @@ if __name__ == '__main__':
         pred.save_metricas(name, model, X_train, y_train, val_index, mask=mask)
         print('METRICAS GUARDADO')
     else:
+        # Guardar el train
+        name = ev.save_training(history, name, 
+                [backbone, frozen_prop, batch, lr, mask, trainprop, pix, subset_bool],
+                subname = '_completo')
+        print('TRAINING GUARDADO')
+
+        # Guardar modelo
+        model.save('/home/mr1142/Documents/Data/models/neumonia/' + name + '.h5')
+        print('MODELO GUARDADO')
+
+        # TEST (subset) - VALIDACION (completo)
         idtest.sort()
         results = ev.evaluate(model, X_train, y_train, idtest, mask=mask)
-        ev.save_eval(name + '_val', results)
+        ev.save_eval(name + '_val', results, subname = '_completo')
         print('EVALUATE GUARDADO')
-        pred.save_metricas(name, model, X_train, y_train, idtest, mask=mask)
+        pred.save_metricas(name, model, X_train, y_train, idtest, mask=mask, subname = '_completo')
         print('METRICAS GUARDADO')
 

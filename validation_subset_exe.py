@@ -1,7 +1,9 @@
+from doctest import DocFileTest
 import os
 import re
 import pickle
 import numpy as np
+import pandas as pd
 import h5py as f
 import argparse
 from tensorflow import keras
@@ -13,7 +15,7 @@ def predicciones_modelo(model_name):
     else:
         mask = False
 
-    model = os.path.join('/home/mr1142/Documents/Data/models/neumonia', model_name)
+    model = os.path.join('/home/mr1142/Documents/Data/models/neumonia', model_name + '.h5')
     model = keras.models.load_model(model)
 
     print('model loaded')
@@ -29,9 +31,9 @@ def predicciones_modelo(model_name):
 
     results = ev.evaluate(model, X_train, y_train, index, mask = mask)
     print('results calculados')
-    ev.save_eval(model_name[:-3] + '_resto', results)
+    ev.save_eval(model_name + '_resto', results)
     print('results guardados en tabla csv')
-    pred.save_metricas(model_name[:-3]  + '_resto', model, X_train, y_train, index, mask)
+    pred.save_metricas(model_name  + '_resto', model, X_train, y_train, index, mask)
 
 
 if __name__ == '__main__':
@@ -47,10 +49,21 @@ if __name__ == '__main__':
     import funciones_complementarias.evaluation as ev
     import funciones_complementarias.prediction as pred
 
-    path = '/home/mr1142/Documents/Data/models/neumonia'
-    onlyfiles = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-    modelos = [file for file in onlyfiles if not bool(re.search('completo', file))] 
-    for model_name in modelos:
+    path = '/home/mr1142/Documents/Data/models/neumonia/validation_results/prediction_validation_metrics.csv'
+    df = pd.read_csv(path)
+    p = '/home/mr1142/Documents/Data/models/neumonia'
+    modelos = os.listdir(p)
+    modelos = [modelo[:-3] for modelo in modelos if os.path.isfile(os.path.join(p, modelo))]
+    modelos = [modelo for modelo in modelos if not bool(re.search('completo', modelo))]
+    modelos_evaluados = list(df['name'])
+    modelos_evaluados_resto = [modelo for modelo in 
+                                modelos_evaluados if bool(re.search('resto', modelo))]
+    modelos_evaluados_resto = [re.split('_resto', modelo)[0] for 
+                                modelo in modelos_evaluados_resto]
+    modelos_a_evaluar_resto = list(set(modelos)-set(modelos_evaluados_resto))
+    print(len(modelos_a_evaluar_resto))
+
+    for model_name in modelos_a_evaluar_resto:
         print(f'\nmodel: {model_name}')
         predicciones_modelo(model_name)
 

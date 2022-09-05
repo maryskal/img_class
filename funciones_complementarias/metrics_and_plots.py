@@ -12,7 +12,10 @@ def younden_idx(real, pred):
 
 def pred_recall_thres(precision, recall, thresholds):
     pr_max = thresholds[np.argmax(precision+recall)]
-    pr_cut= thresholds[np.where(precision == recall)][0] 
+    try:
+        pr_cut= thresholds[np.where(precision == recall)][0]
+    except:
+        pr_cut= thresholds[np.where(precision == recall)]
     return pr_max, pr_cut
 
 
@@ -28,8 +31,8 @@ def AUC_plot(fpr, tpr, thresholds, auc):
     x = fpr[i]
     y = tpr[i]
     ax.plot(fpr,tpr, "g-", label="AUC="+str(round(auc, 2)))
-    ax.set_ylabel('True Positive Rate')
     ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
     try:
         ax.plot([x, x], [0, y], "r:")
         ax.plot([0, x], [y, y], "r:")
@@ -43,12 +46,12 @@ def AUC_plot(fpr, tpr, thresholds, auc):
 def pred_recall_plot(precision, recall, thresholds):
     fig, ax = plt.subplots()
     i = np.argmax(precision+recall)
-    x = precision[i]
-    y = recall[i]
+    x = recall[i]
+    y = precision[i]
     th = thresholds[i]
     ax.plot(recall, precision, "g-")
-    ax.set_ylabel('Recall')
-    ax.set_xlabel('Precision')
+    ax.set_xlabel('Recall')
+    ax.set_ylabel('Precision')
     try:
         ax.plot([x, x], [0, y], "r:")
         ax.plot([0, x], [y, y], "r:")
@@ -71,7 +74,10 @@ def plot_precision_recall_vs_threshold(precision, recall, thresholds):
     ax.plot(thresholds, precision[:-1], "r-", label="Precision", linewidth=2)
     ax.plot(thresholds, recall[:-1], "b-", label="Recall", linewidth=2)
     ax.plot(thresholds, f1[:-1], "m--", label="F1 score", linewidth=2)
-    ax.plot([x], [y], "bo", label="th="+str(round(x[0],2)))
+    try:
+        ax.plot([x], [y], "bo", label="th="+str(round(x[0],2)))
+    except:
+        print('th exception')
     try:
         ax.plot([x, x], [0, y], "k:")
     except:
