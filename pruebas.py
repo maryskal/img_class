@@ -5,7 +5,7 @@ import numpy as np
 import pickle
 import h5py as f
 from tensorflow import keras
-import funciones_complementarias.evaluation as ev
+import funciones_evaluacion.evaluation as ev
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import re
@@ -27,7 +27,7 @@ for model_name in modelos:
         mask = True
     else:
         mask = False
-    import funciones_complementarias.prediction as pred
+    import funciones_evaluacion.prediction as pred
     pred.save_metricas(model_name[:-3], model, X_train, y_train, index, mask)
 
 

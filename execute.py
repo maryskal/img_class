@@ -1,7 +1,7 @@
 import os
 import h5py as f
-import funciones_complementarias.logs as logs
-import funciones_complementarias.evaluation as ev
+import otras_funciones.logs as logs
+import funciones_evaluacion.evaluation as ev
 import argparse
 import numpy as np
 import pickle
@@ -42,10 +42,10 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop):
 
 def generate_index(subset_bool = False, trainprop = 0.8):
     if subset_bool:
-        with open("/home/mr1142/Documents/img_class/indices/index_subset", "rb") as fp:
+        with open("/home/mr1142/Documents/img_class/indices/train_subset", "rb") as fp:
             index = pickle.load(fp)
     else:
-        with open("/home/mr1142/Documents/img_class/indices/index", "rb") as fp:
+        with open("/home/mr1142/Documents/img_class/indices/train", "rb") as fp:
             index = pickle.load(fp)
 
     np.random.shuffle(index)

@@ -38,6 +38,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
     model_name = args.model_name
-    import funciones_complementarias.prediction as pred
-    import funciones_complementarias.evaluation as ev
+    import funciones_evaluacion.prediction as pred
+    import funciones_evaluacion.evaluation as ev
     predicciones_modelo(model_name)

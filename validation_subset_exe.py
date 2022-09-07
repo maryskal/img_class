@@ -46,8 +46,8 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
-    import funciones_complementarias.evaluation as ev
-    import funciones_complementarias.prediction as pred
+    import funciones_evaluacion.evaluation as ev
+    import funciones_evaluacion.prediction as pred
 
     path = '/home/mr1142/Documents/Data/models/neumonia/validation_results/prediction_validation_metrics.csv'
     df = pd.read_csv(path)
