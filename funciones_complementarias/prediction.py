@@ -35,7 +35,7 @@ def save_in_csv(path, name, metricas, subname):
     except:
         df.loc[len(df.index)] = save
     df.reset_index(drop=True)
-    df.to_csv(os.path.join(path, 'prediction_validation_metrics' + subname + '.csv'), index = False)
+    df.to_csv(os.path.join(path, 'prediction_validation_metrics.csv'), index = False)
 
 
 def save_metricas(name, model, X, y, index, mask = False, subname = ''):
@@ -53,7 +53,6 @@ def save_metricas(name, model, X, y, index, mask = False, subname = ''):
         save_json(path, metricas)
         print('json guardado')
     except:
-        print(metricas)
         print('json no saved')
     save_in_csv(p, name, metricas, subname)
     print('guardado en tabla csv')

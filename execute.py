@@ -149,7 +149,7 @@ if __name__ == '__main__':
     
 
     # GUARDAR MÉTRICAS
-    import funciones_complementarias.prediction as pred
+    import funciones_evaluacion.prediction as pred
 
     if subset_bool:
         # Guardar el train

@@ -16,8 +16,6 @@ def pred_recall_thres(precision, recall, thresholds):
         pr_cut= thresholds[np.where(precision == recall)][0]
     except:
         pr_cut= thresholds[np.where(precision == recall)]
-    if not isinstance(pr_cut, float):
-        pr_cut = 0
     return pr_max, pr_cut
 
 

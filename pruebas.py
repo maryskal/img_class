@@ -35,7 +35,7 @@ for model_name in modelos:
 
 
 
-import funciones_complementarias.metrics_and_plots as met
+import funciones_evaluacion.metrics_and_plots as met
 
 X = X_train
 y = y_train
@@ -72,3 +72,4 @@ fig.savefig('plt2.png')
 
 import cv2
 cv2.imwrite('plot.png', )
+

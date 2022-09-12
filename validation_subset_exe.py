@@ -1,15 +1,13 @@
-from doctest import DocFileTest
 import os
 import re
 import pickle
-import numpy as np
 import pandas as pd
 import h5py as f
 import argparse
 from tensorflow import keras
 
 
-def predicciones_modelo(model_name):
+def predicciones_modelo(model_name, ix):
     if bool(re.search('mask', model_name)):
         mask = True
     else:
@@ -24,11 +22,12 @@ def predicciones_modelo(model_name):
     for key in dataframes.keys():
         globals()[key] = dataframes[key]
 
-    with open("/home/mr1142/Documents/img_class/indices/val_rest", "rb") as fp:
+    with open("/home/mr1142/Documents/img_class/indices/" + ix, "rb") as fp:
         index = pickle.load(fp)
 
     index.sort()
 
+    len(index)
     results = ev.evaluate(model, X_train, y_train, index, mask = mask)
     print('results calculados')
     ev.save_eval(model_name + '_resto', results)
@@ -43,9 +42,15 @@ if __name__ == '__main__':
                         help="GPU device",
                         type=str,
                         default=3)
+    parser.add_argument('-ix',
+                        '--ix',
+                        help="GPU device",
+                        type=str,
+                        default='val_rest')
     
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
+    ix = args.ix
     import funciones_evaluacion.evaluation as ev
     import funciones_evaluacion.prediction as pred
 
@@ -56,16 +61,23 @@ if __name__ == '__main__':
     modelos = [modelo[:-3] for modelo in modelos if os.path.isfile(os.path.join(p, modelo))]
     modelos = [modelo for modelo in modelos if not bool(re.search('completo', modelo))]
     modelos_evaluados = list(df['name'])
-    modelos_evaluados_resto = [modelo for modelo in 
-                                modelos_evaluados if bool(re.search('resto', modelo))]
-    modelos_evaluados_resto = [re.split('_resto', modelo)[0] for 
-                                modelo in modelos_evaluados_resto]
-    modelos_a_evaluar_resto = list(set(modelos)-set(modelos_evaluados_resto))
-    print(len(modelos_a_evaluar_resto))
 
-    for model_name in modelos_a_evaluar_resto:
+    if ix == 'val_rest':
+        modelos_evaluados_resto = [modelo for modelo in 
+                                    modelos_evaluados if bool(re.search('resto', modelo))]
+        modelos_evaluados_resto = [re.split('_resto', modelo)[0] for 
+                                    modelo in modelos_evaluados_resto]
+        modelos_a_evaluar = list(set(modelos)-set(modelos_evaluados_resto))
+    
+    if ix == 'val_subset':
+        modelos_a_evaluar = list(set(modelos)-set(modelos_evaluados))
+        
+    print(len(modelos_a_evaluar))
+    print(modelos_a_evaluar)
+
+    for model_name in modelos_a_evaluar:
         print(f'\nmodel: {model_name}')
-        predicciones_modelo(model_name)
+        predicciones_modelo(model_name, ix)
 
 
 
