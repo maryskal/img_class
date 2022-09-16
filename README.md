@@ -1,6 +1,7 @@
 **DATOS**
 
 ***Dataset completo***
+
 Se utilizan las imagenes etiquetadas por ACIL. Son 59439 imagenes con las siguientes proporciones:
 
 - Normal: 0.469590672790592
@@ -11,6 +12,7 @@ Se balancean (SITK/neural_networks/img_class/seleccion_subset) para que todas te
 queda un subset de 32088 imagenes (indices/train)
 
 ***Dataset parcial***
+
 Además, para no realizar diferentes pruebas sobre todo el dataset completo se crea un subset de entrenamiento con
 333 imagenes de cada clase (indices/train_subset) y se crea otro subset de test(indices/val_subset), también de 1000 imagenes
 para testear los modelos entrenados con estas imagenes.
@@ -23,11 +25,13 @@ Los resultados del test de los modelos entrenados de esta manera se guardaron en
 Además estos modelos evaluaron también sobre todo el resto del dataset 59439-1000 (indices/val_rest).
 
 ***Dataset hyperparameter tunning***
+
 Este dataset se realizó con 1000 imágenes de cada clase para el entrenamiento (indices/ht_train_subset)y
 con 1000 imagenes de cada clase para la validación (indices/ht_val_subset).
 
 
 **PREPROCESADO**
+
 Las imágenes ya venían con un preprocesado del dataset de ACIL que se puede comprobar en (github.com/acil-bwh/slowdown-covid19)
 En algunos casos se aplicó un modelo que enmascara el tórax antes de todo el preprocesado (funciones_imagenes/mask_function.py):
 - Paso a escala de grises
@@ -50,6 +54,7 @@ para la gestión de los hiperparámetros
 
 
 **MODELOS**
+
 Los modelos estan construidos sobre un backbone preentrenado que podía ser:
 - Xception
 - IncResNet
@@ -62,6 +67,7 @@ Se hace Global max pooling sobre el output del backbone
 En último lugar se añaden tres capas densas, la última con softmax hasta conseguir un output de (3,)
 
 ***Hiperparámetros***
+
 Los hiperparámetros que se han mantenido fijos han sido
 - batch size de 8
 - pixeles de 512
@@ -76,12 +82,15 @@ Los hiperparámetros que se han ido variando han sido
 - aplicación de máscara sobre el input o no
 
 ***Modelos utilizados***
+
 Para entrenar con máscara se ha necesitado utilizar el modelo unet_final_renacimiento_validation_6.h5,
 que precisa de mask_1.h5 para ejecutarse, ya que cuenta con una loss que viene de ahí.
 
 
 **ENTRENAMIENTOS**
+
 ***Entrenamientos independientes***
+
 Se ha entrenado cada una de las combinaciones de hiperparámetros una vez (90 en total) (execute.py).
 Los entrenamientos se han guardado en: 
 - /home/mr1142/Documents/Data/models/neumonia/training_data/train_max.csv
@@ -91,12 +100,14 @@ Los test se han guardado en:
 - /home/mr1142/Documents/Data/models/neumonia/validation_results/image_class_evaluation.csv
 
 ***Hyperparameter tunning***
+
 Además se ha aplicado la herramienta mango, utilizando ht_train_subset y ht_val_subset para train y validación
 con todos los hiperparámetros variables comentados (ht_exe.py, otras_funciones/train_funct_acil.py).
 Los entrenamientos no se han guardado. Los resultados están guardados en:
 - /home/mr1142/Documents/Data/models/neumonia/ht/results.json
 
 ***Modelos definitivos***
+
 Los modelos definitivos se han entrenado sobre train (execute.py). El set de validación es el llamado X_test, ya considerado
 en el dataframe original del ACIL.
 Los entrenamientos se han guardado en:
@@ -109,6 +120,7 @@ Para el test definitivo el modelo se aplicará validation_exe.py
 
 
 **EVALUACIÓN**
+
 Para la evaluación se han utilizado dos métodos:
 - model.evaluate
 - model.predict
