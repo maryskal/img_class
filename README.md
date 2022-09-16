@@ -15,11 +15,11 @@ Además, para no realizar diferentes pruebas sobre todo el dataset completo se c
 para testear los modelos entrenados con estas imagenes.
 
 Los resultados del entrenamiento de estos modelos se guardaron en: 
-- /home/mr1142/Documents/Data/models/neumonia/training_data/train_max.csv
+- /Documents/Data/models/neumonia/training_data/train_max.csv
 
 Los resultados del test de los modelos entrenados de esta manera se guardaron en un dataframe:
-- /home/mr1142/Documents/Data/models/neumonia/validation_results/prediction_validation_metrics.csv
-- /home/mr1142/Documents/Data/models/neumonia/validation_results/image_class_evaluation.csv
+- /Documents/Data/models/neumonia/validation_results/prediction_validation_metrics.csv
+- /Documents/Data/models/neumonia/validation_results/image_class_evaluation.csv
 
 Además estos modelos evaluaron también sobre todo el resto del dataset 59439-1000 (***indices/val_rest***).
 
@@ -86,20 +86,20 @@ Para entrenar con máscara se ha necesitado utilizar el modelo ***unet_final_ren
 
 Se ha entrenado cada una de las combinaciones de hiperparámetros una vez (90 en total) (***execute.py***).
 Los entrenamientos se han guardado en: 
-- /home/mr1142/Documents/Data/models/neumonia/training_data/train_max.csv
+- /Documents/Data/models/neumonia/training_data/train_max.csv
 
 Se ha testeado cada uno de estos entrenamientos sobre val_subset y sobre val_resto (***validation_subset_exe.py***)
 
 Los test se han guardado en:
-- /home/mr1142/Documents/Data/models/neumonia/validation_results/prediction_validation_metrics.csv
-- /home/mr1142/Documents/Data/models/neumonia/validation_results/image_class_evaluation.csv
+- /Documents/Data/models/neumonia/validation_results/prediction_validation_metrics.csv
+- /Documents/Data/models/neumonia/validation_results/image_class_evaluation.csv
 
 ## Hyperparameter tunning
 
 Además se ha aplicado la herramienta mango, utilizando ht_train_subset y ht_val_subset para train y validación
 con todos los hiperparámetros variables comentados (***ht_exe.py***, ***otras_funciones/train_funct_acil.py***).
 Los entrenamientos no se han guardado. Los resultados están guardados en:
-- /home/mr1142/Documents/Data/models/neumonia/ht/results.json
+- /Documents/Data/models/neumonia/ht/results.json
 
 ## Modelos definitivos
 
@@ -107,11 +107,11 @@ Los modelos definitivos se han entrenado sobre train (***execute.py***). El set 
 en el dataframe original del ACIL.
 
 Los entrenamientos se han guardado en:
-- /home/mr1142/Documents/Data/models/neumonia/training_data/train_max_completos.csv
+- /Documents/Data/models/neumonia/training_data/train_max_completos.csv
 
 La validación se ha realizado sobre su propio val split y se ha guardado en:
-- /home/mr1142/Documents/Data/models/neumonia/validation_results/prediction_validation_metrics_completos.csv
-- /home/mr1142/Documents/Data/models/neumonia/validation_results/image_class_evaluation_completos.csv
+- /Documents/Data/models/neumonia/validation_results/prediction_validation_metrics_completos.csv
+- /Documents/Data/models/neumonia/validation_results/image_class_evaluation_completos.csv
 
 Para el test definitivo el modelo se aplicará ***validation_exe.py***
 
@@ -130,5 +130,5 @@ Con model.predict se han utilizado métricas customizadas (***funciones_evaluaci
 ***Hyperparameter tunning***: Se han evaluado sobre *ht_val_subset*.
 
 ***Modelos definitivos***: Se han validado sobre su propio val split, los resultados están guardados en:
-- /home/mr1142/Documents/Data/models/neumonia/validation_results/prediction_validation_metrics_completos.csv
-- /home/mr1142/Documents/Data/models/neumonia/validation_results/image_class_evaluation_completos.csv
+- /Documents/Data/models/neumonia/validation_results/prediction_validation_metrics_completos.csv
+- /Documents/Data/models/neumonia/validation_results/image_class_evaluation_completos.csv
