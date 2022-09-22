@@ -68,8 +68,8 @@ def pred_recall_plot(precision, recall, thresholds):
 def plot_precision_recall_vs_threshold(precision, recall, thresholds):
     fig, ax = plt.subplots()
     f1 = f1_score(precision, recall)
-    x_f = thresholds[np.argmax(f1)]
-    y_f = f1[np.argmax(f1)]
+    x_f = thresholds[np.where(f1 == max(f1))]
+    y_f = max(f1)
     x = thresholds[np.where(precision == recall)]
     y = precision[np.where(precision == recall)]
     ax.axis([0 ,1, np.min(precision), 1])
@@ -77,15 +77,19 @@ def plot_precision_recall_vs_threshold(precision, recall, thresholds):
     ax.plot(thresholds, recall[:-1], "b-", label="Recall", linewidth=2)
     ax.plot(thresholds, f1[:-1], "m--", label="F1 score", linewidth=2)
     try:
+        for i in range(len(x)):
+            ax.plot([x[i]], [y[i]], "bo", label="th="+str(round(x[i],2)))
+            ax.plot([x[i], x[i]], [0, y[i]], "k:")
+    except:
         ax.plot([x], [y], "bo", label="th="+str(round(x[0],2)))
-    except:
-        print('th exception')
-    try:
         ax.plot([x, x], [0, y], "k:")
+    try:
+        for i in range(len(x)):
+            ax.plot([x_f[i]], [y_f[i]], "bo", label="th="+str(round(x_f[i],2)))
+            ax.plot([x_f[i], x_f[i]], [0, y_f[i]], "k:")
     except:
-        print('plot except')
-    ax.plot([x_f, x_f], [0, y_f], "k:")
-    ax.plot([x_f], [y_f], "ro", label="th="+str(round(x_f,2))) 
+        ax.plot([x_f], [y_f], "ro", label="th="+str(round(x_f[0],2))) 
+        ax.plot([x_f, x_f], [0, y_f], "k:")
     ax.set_xlabel("Threshold")
     ax.grid(True)
     ax.legend()

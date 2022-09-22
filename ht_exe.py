@@ -3,21 +3,13 @@ import argparse
 import json
 import numpy as np
 from mango import Tuner, scheduler
-
+from scipy.stats import uniform
 
 # PARAM SPACE
 param_space_acil = dict(backbone=['Xception', 'IncResNet', 'EffNet3'],
-                    frozen_prop = np.arange(0,1, 0.1),
-                    lr= np.arange(1e-5, 1e-3, 1e-5),
+                    frozen_prop = uniform(0,1),
+                    lr= uniform(1e-5, 1e-3),
                     mask = [True, False])
-
-param_space_ped = dict(modelo=['1', '2'],
-                    frozen_layer = np.arange(0,18, 1),
-                    lr= np.arange(1e-5, 1e-3, 1e-5),
-                    pixels = [512, 256],
-                    loss = ['basic', 'loss1', 'loss2'],
-                    mask = [True, False],
-                    augment = [True, False])
 
 
 # TUNER CONFIGURATION
@@ -57,27 +49,22 @@ if __name__ == '__main__':
                         help="GPU device",
                         type=str,
                         default=3)
-    parser.add_argument('-mo',
-                        '--model',
-                        help="GPU device",
-                        type=str,
-                        default='acil')
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
-    modelo = args.model 
     
-    if modelo == 'acil':
-        import otras_funciones.train_funct_acil as tr
-        param_space = param_space_acil
-    elif modelo == 'pediatric':
-        import otras_funciones.train_func_pediatric as tr
-        param_space = param_space_ped
+    import otras_funciones.train_funct_acil as tr
+    param_space = param_space_acil
 
     tuner = Tuner(param_space, objective, conf_dict)
     results = tuner.maximize()
+
+    for k, v in results.items():
+        if type(v) is np.ndarray:
+            results[k] = list(v)
 
     print('best parameters:', results['best_params'])
     print('best f1score:', results['best_objective'])
 
     with open('/home/mr1142/Documents/Data/models/neumonia/ht/results.json', 'w') as j:
         json.dump(results, j)
+

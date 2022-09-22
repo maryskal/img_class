@@ -17,9 +17,10 @@ def predicciones_modelo(model_name):
     for key in dataframes.keys():
         globals()[key] = dataframes[key]
     
+    model_name = model_name[:-3] + '_test'
     results = ev.evaluate(model, X_val, y_val, list(range(len(y_val))), mask=mask)
-    ev.save_eval(model_name[:-3], results)
-    pred.save_metricas(model_name[:-3], model, X_val, y_val, list(range(len(y_val))), mask)
+    ev.save_eval(model_name, results,subname = '_completo')
+    pred.save_metricas(model_name, model, X_val, y_val, list(range(len(y_val))), mask, subname = '_completo')
 
 
 if __name__ == '__main__':
@@ -33,7 +34,7 @@ if __name__ == '__main__':
                         '--model_name',
                         help="nombre del modelo",
                         type=str,
-                        default='prueba_EffNet3_fine-03_batch-8_lr-001_auc-94.h5')
+                        default='completo_2_Xception_fine-05_batch-8_lr-0001_auc-99.h5')
 
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
