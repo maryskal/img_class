@@ -22,6 +22,7 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop, pix = 512):
     model = models.Sequential()
     model.add(layers.Conv2D(3,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_inicial'))
     model.add(backbone)
+    model.add(layers.Conv2D(3000,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_salida'))
     model.add(layers.GlobalMaxPooling2D(name="general_max_pooling"))
     model.add(layers.Dropout(0.2, name="dropout_out_1"))
     model.add(layers.Dense(768, activation="elu"))
@@ -39,12 +40,12 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop, pix = 512):
 
 
 def generate_index(trainprop = 0.8):
-    with open("/home/mr1142/Documents/img_class/indices/ht_train_subset", "rb") as fp:
+    with open("/home/mr1142/Documents/scripts/img_class/indices/ht_train_subset", "rb") as fp:
         index = pickle.load(fp)
     np.random.shuffle(index)
     idtrain = index[:int(len(index)*trainprop)]
     idtest = index[int(len(index)*trainprop):]
-    return idtrain[:10], idtest[:10]
+    return idtrain, idtest
 
 
 def add_to_csv(data, path):
@@ -55,7 +56,7 @@ def add_to_csv(data, path):
 
 def train(backbone, frozen_prop, lr, mask):
     batch = 8
-    epoch = 1
+    epoch = 200
     pix = 512
 
     # DATAFRAME
@@ -96,10 +97,11 @@ def train(backbone, frozen_prop, lr, mask):
     import funciones_evaluacion.prediction as pred
     import funciones_evaluacion.metrics_and_plots as met
 
-    ev.save_train_in_table(history.history, 'ht', [backbone, frozen_prop, batch, lr, mask, 0.8, pix],
-                                '/home/mr1142/Documents/Data/models/neumonia/ht/train_max_completo.csv')
+    characteristics = [backbone, frozen_prop, batch, lr, mask, pix]
+    ev.save_train_in_table(history.history, 'ht', characteristics,
+                                '/home/mr1142/Documents/Data/models/neumonia/ht/train_max_completo_layer.csv')
 
-    with open("/home/mr1142/Documents/img_class/indices/ht_val_subset", "rb") as fp:
+    with open("/home/mr1142/Documents/scripts/img_class/indices/ht_val_subset", "rb") as fp:
             val_index = pickle.load(fp)
 
     # Ver resultados sobre el test
@@ -107,7 +109,7 @@ def train(backbone, frozen_prop, lr, mask):
     y_real = y_train[val_index]
 
     metricas, _ = met.metricas_dict(y_real, y_pred)
-    add_to_csv(list(metricas.values()), '/home/mr1142/Documents/Data/models/neumonia/ht/prediction_validation_metrics_completo.csv')
+    add_to_csv(characteristics + list(metricas.values()), '/home/mr1142/Documents/Data/models/neumonia/ht/prediction_validation_metrics_completo_layer.csv')
     metricas['f1_score_mean']= (metricas['f1_score_0']+metricas['f1_score_1']+metricas['f1_score_2'])/3
 
     return metricas['f1_score_mean']

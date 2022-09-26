@@ -24,7 +24,7 @@ def early_stop(results):
     return min(patience_window) > current_best
 
 # Configuration
-conf_dict = dict(num_iteration=100, early_stopping = early_stop)
+conf_dict = dict(num_iteration=150, early_stopping = early_stop)
 
 
 # OBJETIVE

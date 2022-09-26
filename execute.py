@@ -24,6 +24,7 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop):
     model = models.Sequential()
     model.add(layers.Conv2D(3,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_inicial'))
     model.add(backbone)
+    model.add(layers.Conv2D(3000,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_salida'))
     model.add(layers.GlobalMaxPooling2D(name="general_max_pooling"))
     model.add(layers.Dropout(0.2, name="dropout_out_1"))
     model.add(layers.Dense(768, activation="elu"))
@@ -42,10 +43,10 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop):
 
 def generate_index(subset_bool = False, trainprop = 0.8):
     if subset_bool:
-        with open("/home/mr1142/Documents/img_class/indices/train_subset", "rb") as fp:
+        with open("/home/mr1142/Documents/scripts/img_class/indices/train_subset", "rb") as fp:
             index = pickle.load(fp)
     else:
-        with open("/home/mr1142/Documents/img_class/indices/train", "rb") as fp:
+        with open("/home/mr1142/Documents/scripts/img_class/indices/train", "rb") as fp:
             index = pickle.load(fp)
 
     np.random.shuffle(index)
@@ -162,7 +163,7 @@ if __name__ == '__main__':
         print('MODELO GUARDADO')
 
         # TEST (subset) - VALIDACION (completo)
-        with open("/home/mr1142/Documents/img_class/indices/val_subset", "rb") as fp:
+        with open("/home/mr1142/Documents/scripts/img_class/indices/val_subset", "rb") as fp:
             val_index = pickle.load(fp)
         
         val_index.sort()
