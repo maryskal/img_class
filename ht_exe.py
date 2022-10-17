@@ -6,9 +6,9 @@ from mango import Tuner, scheduler
 from scipy.stats import uniform
 
 # PARAM SPACE
-param_space_acil = dict(backbone=['Xception', 'IncResNet', 'EffNet3'],
-                    frozen_prop = uniform(0,1),
-                    lr= uniform(1e-5, 1e-3),
+param_space_acil = dict(backbone=['Xception'],
+                    frozen_prop = uniform(0.3,0.8),
+                    lr= uniform(1e-5, 5e-4),
                     mask = [True, False])
 
 
@@ -24,7 +24,7 @@ def early_stop(results):
     return min(patience_window) > current_best
 
 # Configuration
-conf_dict = dict(num_iteration=150, early_stopping = early_stop)
+conf_dict = dict(num_iteration=30, early_stopping = early_stop)
 
 
 # OBJETIVE
@@ -35,7 +35,7 @@ def objective(**params):
     print(params)
     results = []
     for x in range(3):
-        results.append(tr.train(**params))
+        results.append(tr.train(**params, layer = False, evaluation_type='external'))
         print('results {}: {}'.format(x, results[x]))
     print('FINAL RESULTS {}'.format(np.mean(results)))
     return np.mean(results)

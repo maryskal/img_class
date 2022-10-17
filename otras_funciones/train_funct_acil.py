@@ -11,7 +11,7 @@ from tensorflow.keras import models
 import tensorflow as tf
 
 
-def crear_modelo(input_shape, backbone_name, frozen_backbone_prop, pix = 512):
+def crear_modelo(input_shape, backbone_name, frozen_backbone_prop, layer = False, pix = 512):
     if backbone_name == 'IncResNet':
         backbone = InceptionResNetV2(weights="imagenet", include_top=False, input_shape=input_shape)
     elif backbone_name == 'EffNet3':
@@ -22,7 +22,8 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop, pix = 512):
     model = models.Sequential()
     model.add(layers.Conv2D(3,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_inicial'))
     model.add(backbone)
-    model.add(layers.Conv2D(3000,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_salida'))
+    if layer:
+        model.add(layers.Conv2D(3000,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_salida'))
     model.add(layers.GlobalMaxPooling2D(name="general_max_pooling"))
     model.add(layers.Dropout(0.2, name="dropout_out_1"))
     model.add(layers.Dense(768, activation="elu"))
@@ -54,8 +55,11 @@ def add_to_csv(data, path):
     df.to_csv(path, index = False)
 
 
-def train(backbone, frozen_prop, lr, mask):
-    batch = 8
+def train(backbone, frozen_prop, lr, mask, layer = False, evaluation_type = 'internal'):
+    if layer:
+        batch = 5
+    else:
+        batch = 8
     epoch = 200
     pix = 512
 
@@ -73,7 +77,7 @@ def train(backbone, frozen_prop, lr, mask):
 
     # MODELO
     input_shape = (pix,pix,3)
-    model = crear_modelo(input_shape, backbone, frozen_prop)    
+    model = crear_modelo(input_shape, backbone, frozen_prop, layer)    
 
     # Compilado
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = lr), 
@@ -93,25 +97,36 @@ def train(backbone, frozen_prop, lr, mask):
     
 
     # MÉTRICAS
-    import funciones_evaluacion.evaluation as ev
-    import funciones_evaluacion.prediction as pred
-    import funciones_evaluacion.metrics_and_plots as met
-
     characteristics = [backbone, frozen_prop, batch, lr, mask, pix]
-    ev.save_train_in_table(history.history, 'ht', characteristics,
-                                '/home/mr1142/Documents/Data/models/neumonia/ht/train_max_completo_layer.csv')
+    #ev.save_train_in_table(history.history, 'ht', characteristics,
+    #                            '/home/mr1142/Documents/Data/models/neumonia/ht/train_max_completo_layer.csv')
 
-    with open("/home/mr1142/Documents/scripts/img_class/indices/ht_val_subset", "rb") as fp:
-            val_index = pickle.load(fp)
+    if evaluation_type == 'internal':
+        import funciones_evaluacion.prediction as pred
+        import funciones_evaluacion.metrics_and_plots as met
+    
+        with open("/home/mr1142/Documents/scripts/img_class/indices/ht_val_subset", "rb") as fp:
+                val_index = pickle.load(fp)
 
-    # Ver resultados sobre el test
-    y_pred = pred.prediction_tensor(model, X_train, val_index, mask)
-    y_real = y_train[val_index]
+        # Ver resultados sobre el test
+        y_pred = pred.prediction_tensor(model, X_train, val_index, mask)
+        y_real = y_train[val_index]
 
-    metricas, _ = met.metricas_dict(y_real, y_pred)
-    add_to_csv(characteristics + list(metricas.values()), '/home/mr1142/Documents/Data/models/neumonia/ht/prediction_validation_metrics_completo_layer.csv')
-    metricas['f1_score_mean']= (metricas['f1_score_0']+metricas['f1_score_1']+metricas['f1_score_2'])/3
+        metricas, _ = met.metricas_dict(y_real, y_pred)
+        add_to_csv(characteristics + list(metricas.values()), '/home/mr1142/Documents/Data/models/neumonia/ht/prediction_validation_metrics_completo_layer.csv')
+        metricas['f1_score_mean']= (metricas['f1_score_0']+metricas['f1_score_1']+metricas['f1_score_2'])/3
+        return metricas['f1_score_mean']
 
-    return metricas['f1_score_mean']
+    if evaluation_type == 'external':
+        import funciones_evaluacion.external_evaluation as ex_ev
+        path = '/home/mr1142/Documents/Data/global_pneumonia_selection/val'
+        images_names, prediction = ex_ev.prediction_tensor(model, path, mask = mask)
+        df = ex_ev.results_dataframe(images_names, prediction)
+        results = ex_ev.calculate_metrics(df, path)
+        add_to_csv(characteristics[:-1] + 
+                    [max(history.history['val_auc'])] + 
+                    list(results[0].values()), 
+                    '/home/mr1142/Documents/Data/models/neumonia/ht/prediction_validation_external_metrics.csv')
+        return results[0]['auc_']
 
 

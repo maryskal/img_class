@@ -48,7 +48,7 @@ def apply_mask(img, model):
     # Creo una nueva imagen con las dimensiones de entrada al modelo
     img_2 = normalize(recolor_resize(img, 256))[np.newaxis,...]
     # Genero la mascara
-    mask = model.predict(img_2)[0,...]
+    mask = model.predict(img_2, verbose = 0)[0,...]
     # Escalo la mascara generada al tamaño de la imagen de entrada
     mask = cv2.resize(mask, (pix2, pix1))
     # Limpio la mascara

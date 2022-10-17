@@ -4,19 +4,42 @@ import numpy as np
 import pandas as pd
 import funciones_imagenes.prepare_img_fun as fu
 import funciones_evaluacion.metrics_and_plots as met
+from tqdm import tqdm
+
 
 def img_predict(model, img, mask = False, pix = 512):
     try:
         img = fu.get_prepared_img(img, pix, mask)
     except:
         img = np.random.randint(0,255,512*512).reshape((512,512, 1))
-    return model.predict(img[np.newaxis,:])
+    return model.predict(img[np.newaxis,:], verbose=0)
 
 
-def prediction_tensor(model, X, index, mask = False, pix = 512):
+def prediction_tensor_old(model, X, index, mask = False, pix = 512):
     y_pred = np.zeros((len(index), 3))
-    for i in range(y_pred.shape[0]):
+    print('Prediction progress')
+    for i in tqdm(range(y_pred.shape[0])):
         y_pred[i,...] = img_predict(model, X[index[i]], mask, pix)
+    return y_pred
+
+
+def img_prepare(img, mask = False, pix = 512):
+    try:
+        img = fu.get_prepared_img(img, pix, mask)
+    except:
+        img = np.random.randint(0,255,512*512).reshape((512,512, 1))
+    return img[np.newaxis,:]
+
+
+def prediction_tensor(model, X, index, mask = False, pix = 512, batch_size = 80):
+    batches = int(len(index)/batch_size)+1
+    y_pred = []
+    for batch in tqdm(range(batches)):
+        batch_index = index[batch*batch_size:(batch+1)*batch_size]
+        images = list(map(lambda x: img_prepare(X[x],mask, pix), batch_index))
+        images = np.concatenate(images)
+        y_pred.append(model.predict(images, verbose=0, batch_size=batch_size))
+    y_pred = np.concatenate(y_pred)
     return y_pred
 
 

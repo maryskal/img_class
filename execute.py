@@ -24,7 +24,7 @@ def crear_modelo(input_shape, backbone_name, frozen_backbone_prop):
     model = models.Sequential()
     model.add(layers.Conv2D(3,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_inicial'))
     model.add(backbone)
-    model.add(layers.Conv2D(3000,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_salida'))
+    # model.add(layers.Conv2D(3000,3,padding="same", input_shape=(pix,pix,1), activation='elu', name = 'conv_salida'))
     model.add(layers.GlobalMaxPooling2D(name="general_max_pooling"))
     model.add(layers.Dropout(0.2, name="dropout_out_1"))
     model.add(layers.Dense(768, activation="elu"))
@@ -62,7 +62,7 @@ if __name__ == '__main__':
                         '--device',
                         help="GPU device",
                         type=str,
-                        default=3)
+                        default=0)
     parser.add_argument('-n',
                         '--name',
                         type=str,
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     parser.add_argument('-f',
                         '--frozen_prop',
                         type=float,
-                        default=0.7,
+                        default=0.4,
                         help="proportion of layers to frozen from backbone")
     parser.add_argument('-b',
                         '--batch',
