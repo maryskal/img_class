@@ -17,7 +17,7 @@ if __name__ == '__main__':
                         '--path',
                         help="images path",
                         type=str,
-                        default='/home/mr1142/Documents/Data/global_pneumonia_selection/val')
+                        default='/home/mr1142/Documents/Data/global_pneumonia_selection/test')
     parser.add_argument('-m',
                         '--model_name',
                         help="model to apply",
@@ -28,12 +28,22 @@ if __name__ == '__main__':
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
     path = args.path
-    model_name = args.model_name
+    modelos = [args.model_name]
 
-    p = '/home/mr1142/Documents/Data/models/neumonia'
-    modelos = os.listdir(p)
-    modelos = [modelo[:-3] for modelo in modelos if os.path.isfile(os.path.join(p, modelo))]
-    modelos = [modelo for modelo in modelos if bool(re.search('completo', modelo))]
+    # p = '/home/mr1142/Documents/Data/models/neumonia'
+    # modelos = os.listdir(p)
+    # modelos = [modelo[:-3] for modelo in modelos if os.path.isfile(os.path.join(p, modelo))]
+    # modelos = [modelo for modelo in modelos if bool(re.search('DEFINITIVO', modelo))]
+
+    modelos = ['DEFINITIVO_3_mask_05_Xception_fine-05_batch-8_lr-0001_auc-99',
+ 'DEFINITIVO_4_05_Xception_fine-05_batch-8_lr-0001_auc-99',
+ 'DEFINITIVO_4_mask_05_Xception_fine-05_batch-8_lr-0001_auc-99',
+ 'DEFINITIVO_5_05_Xception_fine-05_batch-8_lr-0001_auc-99',
+ 'DEFINITIVO_7_05_Xception_fine-05_batch-8_lr-0001_auc-99',
+ 'DEFINITIVO_7_Xception_fine-04_batch-8_lr-0001_auc-99',
+ 'DEFINITIVO_7_mask_05_Xception_fine-05_batch-8_lr-0001_auc-99',
+ 'DEFINITIVO_7_mask_Xception_fine-04_batch-8_lr-0001_auc-99']
+
     for model_name in modelos:
         print(model_name)
 
