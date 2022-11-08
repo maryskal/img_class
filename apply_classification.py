@@ -17,32 +17,28 @@ if __name__ == '__main__':
                         '--path',
                         help="images path",
                         type=str,
-                        default='/home/mr1142/Documents/Data/global_pneumonia_selection/test')
+                        default='/home/mr1142/Documents/Data/global_pneumonia_selection/val')
     parser.add_argument('-m',
                         '--model_name',
                         help="model to apply",
                         type=str,
-                        default='completo_Xception_fine-03_batch-8_lr--05_auc-99')
-    
+                        default='DEFINITIVO_2_mask_Xception_fine-04_batch-8_lr-0001_auc-99')
+    parser.add_argument('-sp',
+                        '--save_plots',
+                        help="save results plots",
+                        type=bool,
+                        default=False)
 
     args = parser.parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.device)
     path = args.path
+    save_plots = args.save_plots
     modelos = [args.model_name]
 
     # p = '/home/mr1142/Documents/Data/models/neumonia'
     # modelos = os.listdir(p)
     # modelos = [modelo[:-3] for modelo in modelos if os.path.isfile(os.path.join(p, modelo))]
     # modelos = [modelo for modelo in modelos if bool(re.search('DEFINITIVO', modelo))]
-
-    modelos = ['DEFINITIVO_3_mask_05_Xception_fine-05_batch-8_lr-0001_auc-99',
- 'DEFINITIVO_4_05_Xception_fine-05_batch-8_lr-0001_auc-99',
- 'DEFINITIVO_4_mask_05_Xception_fine-05_batch-8_lr-0001_auc-99',
- 'DEFINITIVO_5_05_Xception_fine-05_batch-8_lr-0001_auc-99',
- 'DEFINITIVO_7_05_Xception_fine-05_batch-8_lr-0001_auc-99',
- 'DEFINITIVO_7_Xception_fine-04_batch-8_lr-0001_auc-99',
- 'DEFINITIVO_7_mask_05_Xception_fine-05_batch-8_lr-0001_auc-99',
- 'DEFINITIVO_7_mask_Xception_fine-04_batch-8_lr-0001_auc-99']
 
     for model_name in modelos:
         print(model_name)
@@ -62,3 +58,7 @@ if __name__ == '__main__':
 
         results = ev.calculate_metrics(df, path)
         ev.save_in_csv(path, model_name, results)
+
+        if save_plots:
+            ev.save_plots_fun(results, model_name+'_external')
+            

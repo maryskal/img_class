@@ -20,12 +20,12 @@ if __name__ == '__main__':
                         '--model',
                         help="model name",
                         type=str,
-                        default='')
+                        default='DEFINITIVO_1_05_Xception_fine-05_batch-8_lr-0001_auc-99')
     parser.add_argument('-im',
                         '--image',
                         help="images path",
                         type=str,
-                        default='')
+                        default='/home/mr1142/Documents/Data/global_pneumonia_selection/test')
     parser.add_argument('-th',
                         '--threshold',
                         help="heatmap threshold",

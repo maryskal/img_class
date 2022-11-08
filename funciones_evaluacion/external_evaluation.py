@@ -113,3 +113,13 @@ def save_in_csv(path, name, results):
     comparation = pd.read_csv(os.path.join(path, 'results_comparation.csv'))
     comparation.loc[len(comparation)] = [name] + list(results[0].values())
     comparation.to_csv(os.path.join(path, 'results_comparation.csv'), index = False)
+
+
+def save_plots_fun(results, name):
+    p = '/home/mr1142/Documents/Data/models/neumonia/validation_results'
+    path = os.path.join(p, name)
+    if not os.path.exists(path):
+        os.makedirs(path)
+        print("The new directory is created!")
+    for k, v in results[1].items():
+        met.save_plot(v, path, k)
